@@ -1,12 +1,17 @@
 import os
+import sys
 import argparse
 import ConfigParser
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import TimeoutException
+
+# don't print exception stack trace
+sys.tracebacklimit = 0
 
 class EC_OR:
    def __init__(self, *args):
