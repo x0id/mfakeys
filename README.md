@@ -33,6 +33,12 @@ $ dist/mfakeys -u USERNAME -p PASSWORD -c CODE --url URL
 $ dist/mfakeys -u USERNAME -p PASSWORD -c CODE -a ACCOUNT --url URL
 </pre>
 
+### Use AWS keys for an account
+<pre>
+$ $(dist/mfakeys -u USERNAME -p PASSWORD -c CODE -a ACCOUNT --url URL)
+$ aws ec2 describe-instances
+</pre>
+
 ### Resource file
 <pre>
 $ cat ~/.mfakeysrc

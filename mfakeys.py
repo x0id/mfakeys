@@ -145,7 +145,7 @@ if __name__ == "__main__":
             WebDriverWait(driver, 30).until(
                EC.element_to_be_clickable((By.ID, "env-var-linux"))
             )
-            print(driver.find_element_by_id("env-var-linux").text)
+            print(driver.find_element_by_id("env-var-linux").text.replace("\"", ""))
 
    except TimeoutException:
       print("Timeout")
