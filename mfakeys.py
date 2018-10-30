@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 import sys
 import argparse
@@ -49,6 +51,10 @@ def base_dir():
       return sys._MEIPASS
    except:
       return os.getcwd()
+
+def eprint(*args, **kwargs):
+   """ Print to standard error """
+   print(*args, file=sys.stderr, **kwargs)
 
 if __name__ == "__main__":
    parser = argparse.ArgumentParser(description="AWS MFA Keys Fetcher")
@@ -148,9 +154,9 @@ if __name__ == "__main__":
             print(driver.find_element_by_id("env-var-linux").text.replace("\"", ""))
 
    except TimeoutException:
-      print("Timeout")
+      eprint("Error: Timeout")
    except Exception as e:
-      print("Exception: " + str(e))
+      eprint("Error: " + str(e))
    finally:
       if not debug:
          driver.quit()
