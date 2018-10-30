@@ -14,4 +14,4 @@ build: mfakeys.py
 	venv/bin/pyinstaller --onefile --add-binary "bin/chromedriver:bin" mfakeys.py
 
 clean:
-	rm -rf bin/ build/ dist/ venv/ *.spec *.zip
+	rm -rf bin/ build/ dist/ venv/ *.pyc *.spec *.zip
