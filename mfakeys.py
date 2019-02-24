@@ -115,9 +115,14 @@ if __name__ == "__main__":
       )
       driver.find_element_by_id("wdc_username").send_keys(username)
       driver.find_element_by_id("wdc_password").send_keys(password)
-      driver.find_element_by_id("wdc_mfa").send_keys(code)
-      # auth and wait
       driver.find_element_by_id("wdc_login_button").click()
+      # proceed to the next form
+      WebDriverWait(driver, 5).until(
+         EC.visibility_of_element_located((By.ID, "wdc_mfacode"))
+      )
+      driver.find_element_by_id("wdc_mfacode").send_keys(code)
+      driver.find_element_by_id("wdc_login_button").click()
+      # auth and wait
       WebDriverWait(driver, 60).until(EC_OR(
          EC.visibility_of_element_located((By.XPATH, "//*[@id='alertFrame']/div")),
          EC.element_to_be_clickable((By.XPATH, "//portal-application"))
