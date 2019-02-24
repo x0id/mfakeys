@@ -1,0 +1,13 @@
+#!/bin/bash
+# ex: ts=4 sw=4 et ft=sh
+
+. docker-env
+
+opts[k++]="-it"
+opts[k++]="--rm"
+opts[k++]="--name=mfabox"
+opts[k++]="-v $(pwd)/.mfakeysrc:$INT_HOME/.mfakeysrc:Z"
+opts[k++]="-v $(pwd)/.stokenrc:$INT_HOME/.stokenrc:Z"
+
+docker run ${opts[@]} $IMAGE $*
+

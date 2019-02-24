@@ -64,8 +64,8 @@ if __name__ == "__main__":
    parser.add_argument("-p", "--password",
                        help="Password. Read from '" + CONFIG_FILE_NAME + "' if not provided",
                        default="")
-   parser.add_argument("-c", "--code",
-                       help="MFA Code", required=True)
+ # parser.add_argument("-c", "--code",
+ #                     help="MFA Code", required=True)
    parser.add_argument("-a", "--account",
                        help="Account ID. List accounts if not provided",
                        default="")
@@ -80,7 +80,8 @@ if __name__ == "__main__":
 
    base_dir = base_dir()
    debug = args.debug
-   code = args.code
+ # code = args.code
+   code = os.popen("stoken").read().rstrip()
 
    username = get_arg(argsd, "username", True)
    password = get_arg(argsd, "password", True)
@@ -104,6 +105,7 @@ if __name__ == "__main__":
    if not debug:
       chrome_options.add_argument("--headless")
    chrome_options.add_argument("--disable-gpu")
+   chrome_options.add_argument('--no-sandbox')
    driver = webdriver.Chrome(
       executable_path=os.path.join(base_dir, "bin/chromedriver"),
       chrome_options=chrome_options

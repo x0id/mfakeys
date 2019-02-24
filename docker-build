@@ -1,0 +1,14 @@
+#!/bin/bash
+# ex: ts=4 sw=4 et ft=sh
+
+
+. docker-env
+
+# opts[k++]=--no-cache=true
+opts[k++]=--build-arg=USER=$INT_USER
+opts[k++]=--build-arg=HOME=$INT_HOME
+USERADD="useradd -m -d \"$INT_HOME\" -c \"$INT_NAME\" -u $UID $INT_USER"
+opts[k++]=--build-arg=USERADD="$USERADD"
+
+cd `dirname $0`
+docker build "${opts[@]}" -t $IMAGE .

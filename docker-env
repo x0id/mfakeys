@@ -1,0 +1,15 @@
+#!/bin/bash
+# ex: ts=4 sw=4 et ft=sh
+
+# container internal user name
+# $(id -un)
+INT_USER=mfa
+
+# container internal user full name
+INT_NAME='MFA User'
+
+# container internal user home path
+INT_HOME=/home/$INT_USER
+
+# image
+IMAGE=dk/mfa
