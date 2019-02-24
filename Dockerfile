@@ -33,18 +33,18 @@ ENV USER $USER
 ENV HOME $HOME
 WORKDIR $HOME
 
+RUN wget -cO d.zip \
+    https://chromedriver.storage.googleapis.com/72.0.3626.69/chromedriver_linux64.zip \
+ && unzip d -d bin/ && rm -f d.zip
+
 COPY requirements.txt .
 
 RUN pip install virtualenv
 RUN virtualenv venv --no-site-packages
 RUN venv/bin/pip install -r requirements.txt
 
-RUN wget -cO d.zip \
-    https://chromedriver.storage.googleapis.com/72.0.3626.69/chromedriver_linux64.zip \
- && unzip d -d bin/ && rm -f d.zip
-
 COPY mfakeys.py .
 RUN venv/bin/pyinstaller --onefile --add-binary "bin/chromedriver:bin" mfakeys.py
 ENV PATH=$PATH:$HOME/dist
 ENTRYPOINT []
-CMD ["bash"]
+CMD ["/bin/bash"]

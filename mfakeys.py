@@ -3,7 +3,12 @@ from __future__ import print_function
 import os
 import sys
 import argparse
+import getpass
 import ConfigParser
+import rncryptor
+import base64
+import subprocess
+import re
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -28,23 +33,6 @@ class EC_OR:
 
 CONFIG_FILE_NAME=os.getenv("HOME") + "/" + ".mfakeysrc"
 
-def read_config(section, key):
-   config = ConfigParser.ConfigParser()
-   config.read(CONFIG_FILE_NAME)
-   return config.get(section, key)
-
-def get_arg(argsd, name, required):
-   arg = argsd[name]
-   if arg != "":
-      return arg
-   try:
-      return read_config("default", name)
-   except:
-      if required:
-         raise Exception("argument '" + name + "' is required")
-      else:
-         return ""
-
 def base_dir():
    try:
       # under PyInstaler
@@ -57,44 +45,62 @@ def eprint(*args, **kwargs):
    print(*args, file=sys.stderr, **kwargs)
 
 if __name__ == "__main__":
+
    parser = argparse.ArgumentParser(description="AWS MFA Keys Fetcher")
-   parser.add_argument("-u", "--username",
-                       help="User name. Read from '" + CONFIG_FILE_NAME + "' if not provided",
-                       default="")
-   parser.add_argument("-p", "--password",
-                       help="Password. Read from '" + CONFIG_FILE_NAME + "' if not provided",
-                       default="")
- # parser.add_argument("-c", "--code",
- #                     help="MFA Code", required=True)
-   parser.add_argument("-a", "--account",
-                       help="Account ID. List accounts if not provided",
-                       default="")
-   parser.add_argument("--url",
-                       help="Auth URL. Read from '" + CONFIG_FILE_NAME + "' if not provided",
-                       default="")
-   parser.add_argument("--debug",
-                       help="Show browser for debugging",
+   parser.add_argument("-t", "--token",
+                       help="get mfa token",
                        action="store_true")
+   parser.add_argument("-e", "--encrypt",
+                       help="encrypt user password or pin",
+                       action="store_true")
+   parser.add_argument("-p", "--profile",
+                       help="configuration profile",
+                       default="")
+   parser.add_argument("-a", "--account",
+                       help="account id, list accounts if not provided",
+                       default="")
+
    args = parser.parse_args()
    argsd = vars(args)
 
+   config = ConfigParser.ConfigParser()
+   config.read(CONFIG_FILE_NAME)
+
    base_dir = base_dir()
-   debug = args.debug
- # code = args.code
-   code = os.popen("stoken").read().rstrip()
 
-   username = get_arg(argsd, "username", True)
-   password = get_arg(argsd, "password", True)
-   account = get_arg(argsd, "account", False)
-   url = get_arg(argsd, "url", True)
+   section = argsd["profile"]
+   if section == "":
+      section = config.get("default", "profile")
 
-   if debug:
-      print("Username: " + username)
-      print("Password: " + password)
-      print("Code: " + code)
-      print("Account: " + account)
-      print("Url: " + url)
-      print("Dir: " + base_dir)
+   secret = getpass.getpass("secret: ")
+
+   if args.encrypt:
+      text = getpass.getpass("text to encrypt: ")
+      text = rncryptor.encrypt(text, secret)
+      text = base64.b64encode(text)
+      print(text)
+      sys.exit(0)
+
+   pin = config.get(section, "pin")
+   pin = base64.b64decode(pin)
+   pin = rncryptor.decrypt(pin, secret)
+
+   token, _ = subprocess.Popen(['stoken', '--stdin'],
+      stdout=subprocess.PIPE, stdin=subprocess.PIPE).communicate(pin)
+   token = token.rstrip()
+
+   if args.token:
+      print(token)
+      sys.exit(0)
+
+   username = config.get(section, "username")
+   password = config.get(section, "password")
+   url = config.get(section, "url")
+
+   account = argsd["account"]
+
+   password = base64.b64decode(password)
+   password = rncryptor.decrypt(password, secret)
 
    # if ID is not given the just accounts
    list_accounts = False
@@ -102,8 +108,7 @@ if __name__ == "__main__":
       list_accounts = True
 
    chrome_options = webdriver.ChromeOptions()
-   if not debug:
-      chrome_options.add_argument("--headless")
+   chrome_options.add_argument("--headless")
    chrome_options.add_argument("--disable-gpu")
    chrome_options.add_argument('--no-sandbox')
    driver = webdriver.Chrome(
@@ -122,7 +127,7 @@ if __name__ == "__main__":
       WebDriverWait(driver, 5).until(
          EC.visibility_of_element_located((By.ID, "wdc_mfacode"))
       )
-      driver.find_element_by_id("wdc_mfacode").send_keys(code)
+      driver.find_element_by_id("wdc_mfacode").send_keys(token)
       driver.find_element_by_id("wdc_login_button").click()
       # auth and wait
       WebDriverWait(driver, 60).until(EC_OR(
@@ -158,12 +163,12 @@ if __name__ == "__main__":
             WebDriverWait(driver, 30).until(
                EC.element_to_be_clickable((By.ID, "env-var-linux"))
             )
-            print(driver.find_element_by_id("env-var-linux").text.replace("\"", ""))
+            text = (driver.find_element_by_id("env-var-linux").text.replace("\"", ""))
+            print(re.sub(r'^Click.*$', "", text, re.MULTILINE))
 
    except TimeoutException:
       eprint("Error: Timeout")
    except Exception as e:
       eprint("Error: " + str(e))
    finally:
-      if not debug:
-         driver.quit()
+      driver.quit()
