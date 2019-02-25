@@ -163,8 +163,8 @@ if __name__ == "__main__":
             WebDriverWait(driver, 30).until(
                EC.element_to_be_clickable((By.ID, "env-var-linux"))
             )
-            text = (driver.find_element_by_id("env-var-linux").text.replace("\"", ""))
-            print(re.sub(r'^Click.*$', "", text, re.MULTILINE))
+            text = driver.find_element_by_id("env-var-linux").text
+            print(re.sub(r"\nClick.*\n*", "", text, re.M))
 
    except TimeoutException:
       eprint("Error: Timeout")
