@@ -47,6 +47,9 @@ def eprint(*args, **kwargs):
 if __name__ == "__main__":
 
    parser = argparse.ArgumentParser(description="AWS MFA Keys Fetcher")
+   parser.add_argument("-i", "--stdin",
+                       help="read secret from stdin",
+                       action="store_true")
    parser.add_argument("-t", "--token",
                        help="get mfa token",
                        action="store_true")
@@ -72,7 +75,10 @@ if __name__ == "__main__":
    if section == "":
       section = config.get("default", "profile")
 
-   secret = getpass.getpass("secret: ")
+   if args.stdin:
+      secret = sys.stdin.readline().rstrip()
+   else:
+      secret = getpass.getpass("secret: ")
 
    if args.encrypt:
       text = getpass.getpass("text to encrypt: ")
@@ -164,7 +170,7 @@ if __name__ == "__main__":
                EC.element_to_be_clickable((By.ID, "env-var-linux"))
             )
             text = driver.find_element_by_id("env-var-linux").text
-            print(re.sub(r"\nClick.*\n*", "", text, re.M))
+            print(re.sub(r"\nClick.*\n*", "", text, re.M).replace('"', ''))
 
    except TimeoutException:
       eprint("Error: Timeout")
